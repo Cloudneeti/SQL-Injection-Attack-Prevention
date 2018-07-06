@@ -1,0 +1,194 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "_artifactsLocation": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/AvyanConsultingCorp/SQL-Injection-Attack-Prevention/master/101-SQL-Injection-Attack-Prevention",
+      "metadata": {
+        "description": "this will be the location for artifacts"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "this will be the sas key to access artifacts"
+      }
+    },
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "East US",
+        "West Europe",
+        "Southeast Asia",
+        "Australia Southeast"
+      ],
+      "defaultValue": "East US",
+      "metadata": {
+        "description": "your resources will be created in this location"
+      }
+    },
+    "omsSku": {
+      "type": "string",
+      "defaultValue": "PerNode",
+      "allowedValues": [
+        "Free",
+        "Standalone",
+        "PerNode"
+      ],
+      "metadata": {
+        "description": "this will be you SKU for OMS"
+      }
+    },
+    "pipAddressType": {
+      "type": "string",
+      "defaultValue": "dynamic",
+      "allowedValues": [
+        "dynamic",
+        "static"
+      ],
+      "metadata": {
+        "description": "this will be the type of public IP address used for the VM name"
+      }
+    },
+    "uniqueStringForPublicIP": {
+      "type": "string",
+      "metadata": {
+        "description": "this will be the dns name used for public ip"
+      }
+    }
+  },
+  "variables": {
+    "omsWorkspaceName": "[concat('Virus-Attack','-',substring(uniqueString(resourceGroup().id),0,5))]",
+    "omsSolutions": [
+      "Security",
+      "AzureActivity",
+      "AzureWebAppsAnalytics",
+      "AzureSQLAnalytics",
+      "AzureAppGatewayAnalytics"
+    ],
+    "tags": {
+      "scenario": "SQL-Injection-Attack-Prevention"
+    },
+    "vNetName": "sql-appgw-vnet",
+    "vNetAddressSpace": "10.1.0.0/16",
+    "subnets": [
+      {
+        "name": "appgw-detection",
+        "properties": {
+          "addressPrefix": "10.1.0.0/24"
+        }
+      },
+      {
+        "name": "appgw-prevention",
+        "properties": {
+          "addressPrefix": "10.1.1.0/24"
+        }
+      }
+    ],
+    "applicationGateways": [
+      {
+        "name": "appgw-detection"
+      },
+      {
+        "name": "appgw-prevention"
+      }
+    ],
+    "omsTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.loganalytics/workspaces.json',parameters('_artifactsLocationSasToken'))]",
+    "vnetTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/virtualnetworks.json',parameters('_artifactsLocationSasToken'))]",
+    "pipTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/publicipaddress.json',parameters('_artifactsLocationSasToken'))]",
+    "nicTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/nic-with-pip.json',parameters('_artifactsLocationSasToken'))]",
+    "vmTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.compute/vm.windows.json',parameters('_artifactsLocationSasToken'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "deploy-virus-attack-oms-resource",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('omsTemplateUri')]"
+        },
+        "parameters": {
+          "omsWorkspaceName": {
+            "value": "[variables('omsWorkspaceName')]"
+          },
+          "omsSolutionsName": {
+            "value": "[variables('omsSolutions')]"
+          },
+          "sku": {
+            "value": "[parameters('omsSku')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('vnetName'),'-','-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vnetTemplateUri')]"
+        },
+        "parameters": {
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "addressPrefix": {
+            "value": "[variables('vNetAddressSpace')]"
+          },
+          "subnets": {
+            "value": "[variables('subnets')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('applicationGateways')[copyIndex()],'-pip','-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "copy": {
+        "name": "copy-pip",
+        "count": 2
+      },
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('pipTemplateUri')]"
+        },
+        "parameters": {
+          "publicIPAddressName": {
+            "value": "[concat(variables('applicationGateways')[copyIndex()],'-pip')]"
+          },
+          "publicIPAddressType": {
+            "value": "[parameters('pipAddressType')]"
+          },
+          "dnsNameForPublicIP": {
+            "value": "[concat(variables('applicationGateways')[copyIndex()],parameters('uniqueStringForPublicIP'),'-pip')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          }
+        }
+      }
+    }
+  ]
+}
