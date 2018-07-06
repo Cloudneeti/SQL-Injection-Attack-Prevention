@@ -105,15 +105,19 @@
         "wafMode": "Detection"
       }
     ],
-    "webAppName": "[concat('sql-injection-webapp','-',substring(uniqueString(resourceGroup().id),0,5))]",
-    "webAppUrl": "[concat(variables('webAppName'),'.azurewebsites.net')]",
     "httpProbeName": "aseProbeHTTP",
     "httpsProbeName": "aseProbeHTTPS",
+    "diagStorageAccName": "[concat('sqlinjection','stg',substring(uniqueString(resourceGroup().id),0,5))]",
+    "webAppName": "[concat('sql-injection-webapp','-',substring(uniqueString(resourceGroup().id),0,5))]",
+    "webAppUrl": "[concat(variables('webAppName'),'.azurewebsites.net')]",
+    "aspName": "[concat('sql-injection-asp','-',substring(uniqueString(resourceGroup().id),0,5))]",
     "omsTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.loganalytics/workspaces.json',parameters('_artifactsLocationSasToken'))]",
     "vnetTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/virtualnetworks.json',parameters('_artifactsLocationSasToken'))]",
     "pipTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/publicipaddress.json',parameters('_artifactsLocationSasToken'))]",
     "appgwTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/applicationgateways.json',parameters('_artifactsLocationSasToken'))]",
-    "vmTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.compute/vm.windows.json',parameters('_artifactsLocationSasToken'))]"
+    "storageTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.storage/storageaccounts.storage.json',parameters('_artifactsLocationSasToken'))]",
+    "webappTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/sites.json',parameters('_artifactsLocationSasToken'))]",
+    "aspTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/serverfarms.json',parameters('_artifactsLocationSasToken'))]"
   },
   "resources": [
     {
@@ -350,6 +354,78 @@
           }
         }
       }
-    }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('diagStorageAccName'),'-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+              "uri": "[variables('storageTemplateUri')]"
+          },
+          "parameters": {
+              "storageAccountName": {
+                  "value": "[variables('diagStorageAccName')]"
+              },
+              "location": {
+                  "value": "[parameters('location')]"
+              },
+              "tags": {
+                  "value": "[variables('tags')]"
+              }
+          }
+      }
+  },
+  {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('aspName'),'-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+              "uri": "[variables('aspTemplateUri')]"
+          },
+          "parameters": {
+              "name": {
+                  "value": "[variables('aspName')]"
+              },
+              "location": {
+                  "value": "[parameters('location')]"
+              },
+              "tags": {
+                  "value": "[variables('tags')]"
+              }
+          }
+      }
+  },
+  {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('webAppName'),'-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "[concat(variables('aspName'),'-resource')]"
+      ],
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+              "uri": "[variables('webappTemplateUri')]"
+          },
+          "parameters": {
+              "name": {
+                  "value": "[variables('webAppName')]"
+              },
+              "hostingPlanName": {
+                  "value": "[variables('aspName')]"
+              },
+              "location": {
+                  "value": "[parameters('location')]"
+              },
+              "tags": {
+                  "value": "[variables('tags')]"
+              }
+          }
+      }
+  }
   ]
 }
