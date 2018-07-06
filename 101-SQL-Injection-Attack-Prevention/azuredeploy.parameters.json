@@ -6,13 +6,13 @@
         "value": "sqladmin"
     },
     "sqlServerPassword": {
-      "value": "gen-password"
+      "value": "GY45s@67hx!K"
   },
     "emailToSendAlertsTo": {
       "value": "siddhant.gosavi@outlook.com"
     },
     "uniqueStringForPublicIP": {
-      "value": "gen-unique-13"
+      "value": "gen-unique-12"
     }
   }
 }

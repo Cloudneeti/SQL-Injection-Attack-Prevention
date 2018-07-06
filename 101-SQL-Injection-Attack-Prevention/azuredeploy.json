@@ -218,7 +218,7 @@
             "value": "[parameters('pipAddressType')]"
           },
           "dnsNameForPublicIP": {
-            "value": "[concat(variables('applicationGateways')[copyIndex()].name,parameters('uniqueStringForPublicIP'),'-pip')]"
+            "value": "[concat(variables('applicationGateways')[copyIndex()].name,'-',parameters('uniqueStringForPublicIP'),'-pip')]"
           },
           "location": {
             "value": "[parameters('location')]"
@@ -557,6 +557,7 @@
       }
     },
     {
+      "condition":false,
       "apiVersion": "2017-05-10",
       "name": "[concat(variables('sqlServerName'),'-securityAlertPolicies')]",
       "type": "Microsoft.Resources/deployments",
