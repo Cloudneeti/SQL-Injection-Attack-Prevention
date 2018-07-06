@@ -64,6 +64,12 @@
         "description": "this will be the admin user for sql server"
       }
     },
+    "sqlServerPassword": {
+      "type": "string",
+      "metadata": {
+        "description": "this will be the password for the admin user of sql server"
+      }
+    },
     "emailToSendAlertsTo": {
       "type": "string",
       "metadata": {
@@ -111,13 +117,25 @@
     "webAppName": "[concat('sql-injection-webapp','-',substring(uniqueString(resourceGroup().id),0,5))]",
     "webAppUrl": "[concat(variables('webAppName'),'.azurewebsites.net')]",
     "aspName": "[concat('sql-injection-asp','-',substring(uniqueString(resourceGroup().id),0,5))]",
+    "appServiceConnectionType" : "SQLAzure",
+    "sqlServerName":"sqlinjectionserver",
+    "databases": [
+      {
+          "name": "contosoclinic",
+          "edition": "Standard"
+      }
+    ],
     "omsTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.loganalytics/workspaces.json',parameters('_artifactsLocationSasToken'))]",
     "vnetTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/virtualnetworks.json',parameters('_artifactsLocationSasToken'))]",
     "pipTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/publicipaddress.json',parameters('_artifactsLocationSasToken'))]",
     "appgwTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/applicationgateways.json',parameters('_artifactsLocationSasToken'))]",
     "storageTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.storage/storageaccounts.storage.json',parameters('_artifactsLocationSasToken'))]",
     "webappTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/sites.json',parameters('_artifactsLocationSasToken'))]",
-    "aspTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/serverfarms.json',parameters('_artifactsLocationSasToken'))]"
+    "aspTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/serverfarms.json',parameters('_artifactsLocationSasToken'))]",
+    "webappConnectionStringTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/sites.config.connectionstrings.json',parameters('_artifactsLocationSasToken'))]",
+    "webappMsDeployTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.web/sites.extensions.msdeploy.json',parameters('_artifactsLocationSasToken'))]",
+    "webPackageUri": "[concat(parameters('_artifactsLocation'),'/artifacts/ContosoClinic.zip',parameters('_artifactsLocationSasToken'))]"
+
   },
   "resources": [
     {
@@ -420,6 +438,62 @@
               },
               "location": {
                   "value": "[parameters('location')]"
+              },
+              "tags": {
+                  "value": "[variables('tags')]"
+              }
+          }
+      }
+  },
+  {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('webAppName'),'-connectionStrings','-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "[concat(variables('webAppName'),'-resource')]"
+      ],
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+              "uri": "[variables('webappConnectionStringTemplateUri')]"
+          },
+          "parameters": {
+              "webAppName": {
+                  "value": "[variables('webAppName')]"
+              },
+              "location": {
+                  "value": "[parameters('location')]"
+              },
+              "connectionType": {
+                  "value": "[variables('appServiceConnectionType')]"
+              },
+              "connectionString": {
+                  "value": "[concat('Data Source=tcp:', variables('sqlServerName'), '.database.windows.net,1433;Initial Catalog=', variables('databases')[0].name, ';User Id=', parameters('sqlAdministratorName'), ';Password=', parameters('sqlServerPassword'), ';Connection Timeout=300;')]"
+              }
+          }
+      }
+  },
+  {
+      "apiVersion": "2017-05-10",
+      "name": "[concat(variables('webAppName'),'-msdeploy','-resource')]",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+          "[concat(variables('webAppName'),'-connectionStrings')]"
+      ],
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+              "uri": "[variables('webappMsDeployTemplateUri')]"
+          },
+          "parameters": {
+              "webAppName": {
+                  "value": "[variables('webAppName')]"
+              },
+              "location": {
+                  "value": "[parameters('location')]"
+              },
+              "packageUri": {
+                  "value": "[variables('webPackageUri')]"
               },
               "tags": {
                   "value": "[variables('tags')]"

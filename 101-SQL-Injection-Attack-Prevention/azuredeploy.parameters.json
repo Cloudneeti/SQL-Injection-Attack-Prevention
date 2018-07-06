@@ -5,6 +5,9 @@
     "sqlAdministratorName": {
         "value": "sqladmin"
     },
+    "sqlServerPassword": {
+      "value": "gen-password"
+  },
     "emailToSendAlertsTo": {
       "value": "siddhant.gosavi@outlook.com"
     },
