@@ -34,5 +34,11 @@
                 "subnets": "[parameters('subnets')]"
             }
         }
-    ]
+    ],
+    "outputs": {
+        "vnetId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnetName'))]"
+        }
+    }
 }

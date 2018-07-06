@@ -57,10 +57,22 @@
       "metadata": {
         "description": "this will be the dns name used for public ip"
       }
+    },
+    "sqlAdministratorName": {
+      "type": "string",
+      "metadata": {
+        "description": "this will be the admin user for sql server"
+      }
+    },
+    "emailToSendAlertsTo": {
+      "type": "string",
+      "metadata": {
+        "description": "this user will get the alert emails"
+      }
     }
   },
   "variables": {
-    "omsWorkspaceName": "[concat('Virus-Attack','-',substring(uniqueString(resourceGroup().id),0,5))]",
+    "omsWorkspaceName": "[concat('sql-injection-oms','-',substring(uniqueString(resourceGroup().id),0,5))]",
     "omsSolutions": [
       "Security",
       "AzureActivity",
@@ -73,32 +85,34 @@
     },
     "vNetName": "sql-appgw-vnet",
     "vNetAddressSpace": "10.1.0.0/16",
+    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetName'))]",
     "subnets": [
       {
-        "name": "appgw-detection",
+        "name": "appgw-subnet",
         "properties": {
           "addressPrefix": "10.1.0.0/24"
         }
+      }
+    ],
+    "subnetRef": "[concat(variables('vnetId'),'/subnets/',variables('subnets')[0].name)]",
+    "applicationGateways": [
+      {
+        "name": "appgw-detection",
+        "wafMode": "Prevention"
       },
       {
         "name": "appgw-prevention",
-        "properties": {
-          "addressPrefix": "10.1.1.0/24"
-        }
+        "wafMode": "Detection"
       }
     ],
-    "applicationGateways": [
-      {
-        "name": "appgw-detection"
-      },
-      {
-        "name": "appgw-prevention"
-      }
-    ],
+    "webAppName": "[concat('sql-injection-webapp','-',substring(uniqueString(resourceGroup().id),0,5))]",
+    "webAppUrl": "[concat(variables('webAppName'),'.azurewebsites.net')]",
+    "httpProbeName": "aseProbeHTTP",
+    "httpsProbeName": "aseProbeHTTPS",
     "omsTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.loganalytics/workspaces.json',parameters('_artifactsLocationSasToken'))]",
     "vnetTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/virtualnetworks.json',parameters('_artifactsLocationSasToken'))]",
     "pipTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/publicipaddress.json',parameters('_artifactsLocationSasToken'))]",
-    "nicTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/nic-with-pip.json',parameters('_artifactsLocationSasToken'))]",
+    "appgwTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.network/applicationgateways.json',parameters('_artifactsLocationSasToken'))]",
     "vmTemplateUri": "[concat(parameters('_artifactsLocation'),'/nested/microsoft.compute/vm.windows.json',parameters('_artifactsLocationSasToken'))]"
   },
   "resources": [
@@ -132,7 +146,7 @@
     },
     {
       "apiVersion": "2017-05-10",
-      "name": "[concat(variables('vnetName'),'-','-resource')]",
+      "name": "[concat(variables('vnetName'),'-resource')]",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "Incremental",
@@ -163,7 +177,7 @@
       "name": "[concat(variables('applicationGateways')[copyIndex()].name,'-pip','-resource')]",
       "type": "Microsoft.Resources/deployments",
       "copy": {
-        "name": "copy-pip",
+        "name": "copy-appgateway-pip",
         "count": 2
       },
       "properties": {
@@ -173,19 +187,166 @@
         },
         "parameters": {
           "publicIPAddressName": {
-            "value": "[concat(variables('applicationGateways')[copyIndex()],'-pip')]"
+            "value": "[concat(variables('applicationGateways')[copyIndex()].name,'-pip')]"
           },
           "publicIPAddressType": {
             "value": "[parameters('pipAddressType')]"
           },
           "dnsNameForPublicIP": {
-            "value": "[concat(variables('applicationGateways')[copyIndex()],parameters('uniqueStringForPublicIP'),'-pip')]"
+            "value": "[concat(variables('applicationGateways')[copyIndex()].name,parameters('uniqueStringForPublicIP'),'-pip')]"
           },
           "location": {
             "value": "[parameters('location')]"
           },
           "tags": {
             "value": "[variables('tags')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "[concat('deploy-',variables('applicationGateways')[copyIndex()].name,'-applicationgateway')]",
+      "type": "Microsoft.Resources/deployments",
+      "copy": {
+        "name": "copy-appgateway",
+        "count": 2
+      },
+      "dependsOn": [
+        "copy-appgateway-pip",
+        "[concat(variables('vnetName'),'-resource')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('appgwTemplateUri')]"
+        },
+        "parameters": {
+          "applicationGatewayName": {
+            "value": "[variables('applicationGateways')[copyIndex()].name]"
+          },
+          "publicIPRef": {
+            "value": "[reference(concat(variables('applicationGateways')[copyIndex()].name,'-pip','-resource')).outputs.publicIPRef.value]"
+          },
+          "frontendPorts": {
+            "value": [
+              {
+                "name": "appGatewayFrontendPort",
+                "properties": {
+                  "Port": 80
+                }
+              }
+            ]
+          },
+          "gatewayIPConfigurations": {
+            "value": [
+              {
+                "name": "appGatewayIpConfig",
+                "properties": {
+                  "subnet": {
+                    "id": "[variables('subnetRef')]"
+                  }
+                }
+              }
+            ]
+          },
+          "backendAddressPools": {
+            "value": [
+              {
+                "name": "appGatewayBackendPool",
+                "properties": {
+                  "BackendAddresses": [
+                    {
+                      "fqdn": "[variables('webAppUrl')]"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "backendHttpSettingsCollection": {
+            "value": [
+              {
+                "name": "appGatewayBackendHttpSettings",
+                "properties": {
+                  "Port": 80,
+                  "Protocol": "Http",
+                  "CookieBasedAffinity": "Disabled",
+                  "pickHostNameFromBackendAddress": "true",
+                  "Probe": {
+                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name),'/probes/',variables('httpProbeName'))]"
+                  }
+                }
+              }
+            ]
+          },
+          "httpListeners": {
+            "value": [
+              {
+                "name": "appGatewayHttpListener",
+                "properties": {
+                  "FrontendIPConfiguration": {
+                    "Id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+                  },
+                  "FrontendPort": {
+                    "Id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name), '/frontendPorts/appGatewayFrontendPort')]"
+                  },
+                  "Protocol": "Http",
+                  "SslCertificate": null
+                }
+              }
+            ]
+          },
+          "requestRoutingRules": {
+            "value": [
+              {
+                "Name": "rule1",
+                "properties": {
+                  "RuleType": "Basic",
+                  "httpListener": {
+                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name), '/httpListeners/appGatewayHttpListener')]"
+                  },
+                  "backendAddressPool": {
+                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name), '/backendAddressPools/appGatewayBackendPool')]"
+                  },
+                  "backendHttpSettings": {
+                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name), '/backendHttpSettingsCollection/appGatewayBackendHttpSettings')]"
+                  }
+                }
+              }
+            ]
+          },
+          "probes": {
+            "value": [
+              {
+                "name": "[variables('httpProbeName')]",
+                "properties": {
+                  "protocol": "Http",
+                  "host": "[variables('webAppUrl')]",
+                  "path": "/",
+                  "interval": 30,
+                  "timeout": 30,
+                  "unhealthyThreshold": 8
+                }
+              },
+              {
+                "name": "[variables('httpsProbeName')]",
+                "properties": {
+                  "protocol": "Https",
+                  "host": "[variables('webAppUrl')]",
+                  "path": "/",
+                  "interval": 30,
+                  "timeout": 30,
+                  "unhealthyThreshold": 8
+                }
+              }
+            ]
+          },
+          "wafMode": {
+            "value": "[variables('applicationGateways')[copyIndex()].wafMode]"
+          },
+          "omsWorkspaceResourceId": {
+            "value": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('omsWorkspaceName'))]"
           }
         }
       }
