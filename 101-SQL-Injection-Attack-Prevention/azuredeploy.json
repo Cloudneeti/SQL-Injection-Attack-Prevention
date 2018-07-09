@@ -556,7 +556,6 @@
       }
     },
     {
-      "condition":false,
       "apiVersion": "2017-05-10",
       "name": "[concat(variables('sqlServerName'),'-securityAlertPolicies')]",
       "type": "Microsoft.Resources/deployments",
