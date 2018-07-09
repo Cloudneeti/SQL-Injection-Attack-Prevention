@@ -65,7 +65,7 @@
       }
     },
     "sqlServerPassword": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "this will be the password for the admin user of sql server"
       }
@@ -118,7 +118,7 @@
     "webAppUrl": "[concat(variables('webAppName'),'.azurewebsites.net')]",
     "aspName": "[concat('sql-injection-asp','-',substring(uniqueString(resourceGroup().id),0,5))]",
     "appServiceConnectionType": "SQLAzure",
-    "sqlServerName": "sqlinjectionserver",
+    "sqlServerName": "[concat('sqlinjectionserver',substring(uniqueString(resourceGroup().id),0,5))]",
     "databases": [
       {
         "name": "contosoclinic",
@@ -218,7 +218,7 @@
             "value": "[parameters('pipAddressType')]"
           },
           "dnsNameForPublicIP": {
-            "value": "[concat(variables('applicationGateways')[copyIndex()].name,'-',parameters('uniqueStringForPublicIP'),substring(uniqueString(resourceGroup().id),0,5),'-pip')]"
+            "value": "[concat(variables('applicationGateways')[copyIndex()].name,'-',toLower(parameters('uniqueStringForPublicIP')),substring(uniqueString(resourceGroup().id),0,5),'-pip')]"
           },
           "location": {
             "value": "[parameters('location')]"
