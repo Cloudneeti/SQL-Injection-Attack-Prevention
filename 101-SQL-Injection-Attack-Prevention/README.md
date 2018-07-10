@@ -57,9 +57,13 @@ Access to Azure subscription to deploy following resources
 
 1. Deploy using "Deploy to Azure" button at the top 
 
-2. Execute following command to configure SQL Server Firewall and load data into database.
+2. Execute following command to generate secure string password for SQL server login
 
-    `.\DSC\sqlserver.ps1 -ResourceGruopName "<ResourceGroupName>" -SqlAdminUser "<SqlAdminUser>" -SqlAdminPassword <SqlAdminPassword> -Verbose`
+    `$pass= "<SQL server admin password>" | Convertto-securestring -asplaintext -force`
+
+2. Execute following command to configure SQL Server Firewall and load data into database using secure string password generated in above step
+
+    `.\DSC\sqlserver.ps1 -ResourceGruopName "<ResourceGroupName>" -SqlAdminUser "<SqlAdminUser>" -SqlAdminPassword $pass -Verbose`
 
 
 <a name="attack"></a>
@@ -68,7 +72,7 @@ Attack on web app with
 * Application gateway - WAF - Detection mode 
 * SQL server and database with Threat Detection disabled. 
 
-1. Go to Azure Portal --> Select Resource Groups services --> Select Resource Group - <prefix> "-sql-injection-attack-on-webapp"
+1. Go to Azure Portal --> Select Resource Groups services --> Select Resource Group --> <ResourceGroupName> given during deployment
 
 2. Select Application Gateway with name 'appgw-detection-' as prefix.
 
@@ -97,7 +101,7 @@ Attack on web app with
 # Detect  
 ###  Detection using OMS
 To detect the attack execute following query in Azure Log Analytics
-1. Go to Azure Portal --> navigate to resource group 'azuresecuritypoc-common-resources'  
+1. Go to Azure Portal --> navigate to Log Analytics in same resource group 
 
 ![](images/sql-inj-common-oms-location.png) 
 
