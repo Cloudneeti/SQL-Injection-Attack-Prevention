@@ -10,9 +10,6 @@
     },
     "emailToSendAlertsTo": {
       "value": "siddhant.gosavi@outlook.com"
-    },
-    "uniqueStringForPublicIP": {
-      "value": "gen-unique-8"
     }
   }
 }
