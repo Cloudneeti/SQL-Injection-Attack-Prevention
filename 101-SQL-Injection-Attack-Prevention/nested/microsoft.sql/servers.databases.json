@@ -39,7 +39,7 @@
         {
             "name": "[concat(parameters('sqlServerName'),'/',parameters('databaseName'))]",
             "type": "Microsoft.Sql/servers/databases",
-            "apiVersion": "2014-04-01",
+            "apiVersion": "2017-10-01-preview",
             "tags": "[parameters('tags')]",
             "location": "[parameters('location')]",
             "properties": {
@@ -53,7 +53,7 @@
                     "dependsOn": [
                         "[resourceId('Microsoft.Sql/servers/databases',parameters('sqlServerName'),parameters('databaseName'))]"
                     ],
-                    "apiVersion": "2015-07-01",
+                    "apiVersion": "2017-05-01-preview",
                     "properties": {
                         "workspaceId": "[parameters('omsWorkspaceResourceId')]",
                         "logs": [
