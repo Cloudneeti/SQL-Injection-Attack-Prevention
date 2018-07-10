@@ -66,6 +66,7 @@
     },
     "emailToSendAlertsTo": {
       "type": "string",
+      "defaultValue": "dummy@contoso.com",
       "metadata": {
         "description": "this user will get the alert emails"
       }
@@ -551,7 +552,7 @@
     },
     {
       "apiVersion": "2018-05-01",
-      "name": "[concat(variables('sqlServerName'),'-securityAlertPolicies')]",
+      "name": "[concat(variables('sqlServerName'),'-securityAlertPolicies','-resource')]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "[concat(variables('sqlServerName'),'-auditingSettings','-resource')]"

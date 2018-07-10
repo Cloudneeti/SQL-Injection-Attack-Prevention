@@ -7,9 +7,6 @@
     },
     "sqlServerPassword": {
       "value": "GY45s@67hx!K"
-    },
-    "emailToSendAlertsTo": {
-      "value": "siddhant.gosavi@outlook.com"
     }
   }
 }
