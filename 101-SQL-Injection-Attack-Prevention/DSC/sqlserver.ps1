@@ -38,9 +38,6 @@ $artifactsStorageAccKeyType = "StorageAccessKey"
 Write-Verbose -Message "Updating SQL server firewall rule."
 $sqlServerName = (Get-AzureRmSqlServer -ResourceGroupName $ResourceGruopName).ServerName
 
-Write-Verbose -Message "sql server name:"
-Write-Verbose $sqlServerName
-
 New-AzureRmSqlServerFirewallRule -ResourceGroupName $ResourceGruopName -ServerName $sqlServerName -FirewallRuleName "ClientIpRule$clientIPHash" -StartIpAddress $clientIPAddress -EndIpAddress $clientIPAddress -ErrorAction SilentlyContinue
 New-AzureRmSqlServerFirewallRule -ResourceGroupName $ResourceGruopName -ServerName $sqlServerName -FirewallRuleName "AllowAzureServices" -StartIpAddress 0.0.0.0 -EndIpAddress 0.0.0.0 -ErrorAction SilentlyContinue
 
