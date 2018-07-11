@@ -57,13 +57,25 @@ Access to Azure subscription to deploy following resources
 
 1. Deploy using "Deploy to Azure" button at the top 
 
-2. Execute following command to generate secure string password for SQL server login
+Following steps are required to update SQL Server firewall settings and load data into database. 
 
-    `$pass= "<SQL server admin password>" | Convertto-securestring -asplaintext -force`
+1. Clone Azure quickstart templates repository using
 
-2. Execute following command to configure SQL Server Firewall and load data into database using secure string password generated in above step
+    `git clone https://github.com/Azure/azure-quickstart-templates.git`
 
-    `.\DSC\sqlserver.ps1 -ResourceGruopName "<ResourceGroupName>" -SqlAdminUser "<SqlAdminUser>" -SqlAdminPassword $pass -Verbose`
+3. Open Windows PowerShell (Run as Administrator) and navigate to 101-SQL-Injection-Attack-Prevention directory 
+ 
+    `cd .\azure-quickstart-templates\101-SQL-Injection-Attack-Prevention\`
+
+4. Execute following command to generate secure string password (password given during deployment of the scenario) for SQL server login
+
+    `$pass= "<SQL server admin password>" |  ConvertTo-SecureString -AsPlainText -Force`
+
+5. Execute following command to configure SQL Server Firewall and load data into database using secure string password generated in above step
+
+    `.\DSC\sqlserver.ps1 -ResourceGroupName "<ResourceGroupName>" -SqlAdminUser "<SqlAdminUser>" -SqlAdminPassword $pass -Verbose`
+
+
 
 
 <a name="attack"></a>
