@@ -57,7 +57,7 @@
       },
       "endpoint": {
         "type": "string",
-        "value": "[concat(parameters('name'),''.azurewebsites.net)]"
+        "value": "[concat(parameters('name'),'.azurewebsites.net')]"
       }
     }
   }
