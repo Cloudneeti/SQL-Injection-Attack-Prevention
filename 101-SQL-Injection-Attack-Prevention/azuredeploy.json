@@ -73,7 +73,7 @@
     }
   },
   "variables": {
-    "omsWorkspaceName": "[concat('sql-injection-oms','-',substring(uniqueString(resourceGroup().id),0,5))]",
+    "omsWorkspaceName": "[concat('sql-injection-oms','-',uniqueString(resourceGroup().id))]",
     "omsSolutions": [
       "Security",
       "AzureActivity",
