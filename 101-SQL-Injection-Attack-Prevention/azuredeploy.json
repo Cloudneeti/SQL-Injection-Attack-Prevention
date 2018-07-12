@@ -291,7 +291,7 @@
                   "CookieBasedAffinity": "Disabled",
                   "pickHostNameFromBackendAddress": "true",
                   "Probe": {
-                    "id": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name,'/probes/',variables('httpProbeName'))]"
+                    "id": "[resourceId('Microsoft.Network/applicationGateways/probes',variables('applicationGateways')[copyIndex()].name,variables('httpProbeName'))]"
                   }
                 }
               }
@@ -303,10 +303,10 @@
                 "name": "appGatewayHttpListener",
                 "properties": {
                   "FrontendIPConfiguration": {
-                    "Id": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name, '/frontendIPConfigurations/appGatewayFrontendIP')]"
+                    "Id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations',variables('applicationGateways')[copyIndex()].name, 'appGatewayFrontendIP')]"
                   },
                   "FrontendPort": {
-                    "Id": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name, '/frontendPorts/appGatewayFrontendPort')]"
+                    "Id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts',variables('applicationGateways')[copyIndex()].name, 'appGatewayFrontendPort')]"
                   },
                   "Protocol": "Http",
                   "SslCertificate": null
@@ -321,13 +321,13 @@
                 "properties": {
                   "RuleType": "Basic",
                   "httpListener": {
-                    "id": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name, '/httpListeners/appGatewayHttpListener')]"
+                    "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners',variables('applicationGateways')[copyIndex()].name, 'appGatewayHttpListener')]"
                   },
                   "backendAddressPool": {
-                    "id": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name, '/backendAddressPools/appGatewayBackendPool')]"
+                    "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools',variables('applicationGateways')[copyIndex()].name, 'appGatewayBackendPool')]"
                   },
                   "backendHttpSettings": {
-                    "id": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGateways')[copyIndex()].name, '/backendHttpSettingsCollection/appGatewayBackendHttpSettings')]"
+                    "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection',variables('applicationGateways')[copyIndex()].name, 'appGatewayBackendHttpSettings')]"
                   }
                 }
               }
