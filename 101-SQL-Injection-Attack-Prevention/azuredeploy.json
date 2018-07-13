@@ -606,15 +606,6 @@
           },
           "edition": {
             "value": "[variables('databases')[0].edition]"
-          },
-          "administratorLogin": {
-            "value": "[parameters('sqlAdministratorName')]"
-          },
-          "administratorLoginPassword": {
-            "value": "[parameters('sqlServerPassword')]"
-          },
-          "databaseBacpacUri":{
-            "value": "[variables('bacpacUri')]"
           }
         }
       }
