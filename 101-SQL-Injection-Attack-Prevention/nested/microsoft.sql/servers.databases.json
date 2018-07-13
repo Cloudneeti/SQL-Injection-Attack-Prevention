@@ -12,6 +12,12 @@
       "location": {
         "type": "string"
       },
+      "administratorLogin": {
+        "type": "string"
+      }, 
+      "administratorLoginPassword": {
+        "type": "securestring"
+      },
       "edition": {
         "type": "string",
         "defaultValue": "Basic",
@@ -42,6 +48,13 @@
         "metadata": {
           "description": "Specifies the number of days that logs are gonna be kept. If you do not want to apply any retention policy and retain data forever, set value to 0."
         }
+      },
+      "databaseBacpacUri":{
+        "type": "string"
+      },
+      "accessKeyType":{
+        "type": "string",
+        "defaultValue": "SharedAccessKey"
       }
     },
     "resources": [
@@ -56,6 +69,22 @@
           "edition": "[parameters('edition')]"
         },
         "resources": [
+          {
+            "name": "Import",
+            "type": "extensions",
+            "apiVersion": "2014-04-01-preview",
+            "dependsOn": [
+              "[resourceId('Microsoft.Sql/servers/databases',parameters('sqlServerName'), parameters('databaseName'))]"
+            ],
+            "properties": {
+                "storageKey": "?",
+                "storageKeyType": "[parameters('accessKeyType')]",
+                "storageUri": "[parameters('databaseBacpacUri')]",
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "operationMode": "Import"
+            }
+        },
           {
             "type": "providers/diagnosticSettings",
             "name": "Microsoft.Insights/service",

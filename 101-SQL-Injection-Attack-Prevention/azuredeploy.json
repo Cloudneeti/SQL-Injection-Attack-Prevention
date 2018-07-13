@@ -130,7 +130,8 @@
     "sqlServerTemplateUri": "[concat(uri(parameters('_artifactsLocation'),'nested/microsoft.sql/servers.v12.0.json'),parameters('_artifactsLocationSasToken'))]",
     "sqlDatabaseTemplateUri": "[concat(uri(parameters('_artifactsLocation'),'nested/microsoft.sql/servers.databases.json'),parameters('_artifactsLocationSasToken'))]",
     "sqlAuditingTemplateUri": "[concat(uri(parameters('_artifactsLocation'),'nested/microsoft.sql/servers.auditingsettings.json'),parameters('_artifactsLocationSasToken'))]",
-    "sqlSecurityTemplateUri": "[concat(uri(parameters('_artifactsLocation'),'nested/microsoft.sql/servers.securityalertpolicies.json'),parameters('_artifactsLocationSasToken'))]"
+    "sqlSecurityTemplateUri": "[concat(uri(parameters('_artifactsLocation'),'nested/microsoft.sql/servers.securityalertpolicies.json'),parameters('_artifactsLocationSasToken'))]",
+    "bacpacUri": "[concat(uri(parameters('_artifactsLocation'),'artifacts/contosoclinic.bacpac'),parameters('_artifactsLocationSasToken'))]"
   },
   "resources": [
     {
@@ -605,6 +606,15 @@
           },
           "edition": {
             "value": "[variables('databases')[0].edition]"
+          },
+          "administratorLogin": {
+            "value": "[parameters('sqlAdministratorName')]"
+          },
+          "administratorLoginPassword": {
+            "value": "[parameters('sqlServerPassword')]"
+          },
+          "databaseBacpacUri":{
+            "value": "[variables('bacpacUri')]"
           }
         }
       }
