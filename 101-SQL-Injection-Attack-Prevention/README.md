@@ -1,5 +1,4 @@
 # SQL injection attack on a Web Application Scenario 
-This repository contains SQL injection attack detection & prevention on a Web Application <p></p>
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAvyanConsultingCorp%2FSQL-Injection-Attack-Prevention%2Fmaster%2F101-SQL-Injection-Attack-Prevention%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/> 
@@ -17,10 +16,12 @@ This repository contains SQL injection attack detection & prevention on a Web Ap
 6. [Detect Attack](#detect)
 7. [Respond/Mitigate](#mitigate)
 8. [Configuration validation](#config)
+9. [Teardown Deployment](#teardown)
 
 <a name="objectives"></a>
 # Objective of the POC 
-Showcase a SQL injection attack detection & prevention on a Web Application (Web App + SQL DB)
+This playbook demonstrates SQL injection attack against an unprotected sample web application.  After simulating an attack, harden the resources by applying protections to the web and SQL layers.  Re-attempt the attack against the protected application to see the defense in action.
+
 
 <a name="overview"></a>
 # Overview
@@ -116,7 +117,7 @@ Attack on web app with
 <a name="detect"></a>
 # Detect  
 ###  Detection using OMS
-To detect the attack execute following query in Azure Log Analytics
+To detect the attack, execute following query in Azure Log Analytics
 <p/>
 <u>Note</u>: first time it takes few hours for OMS to pull logs for detection and prevention events. For subsequent requests it takes 10-15 mins to reflect in OMS, so if you don't get any search results, please try again after sometime.
 <p/>
@@ -154,7 +155,7 @@ Once Auditing & Threat Detection is database is enabled for SQL database, Azure 
 <a name="mitigate"></a>
 # Mitigate 
 
-  * Update Web application firewall mode to Prevention for application gateway. This will take 5-10 mins. Hence we will connect the application using Application Gateway (WAF- Prevention mode) 
+  * Update Web application firewall mode to Prevention for application gateway. This will take 5-10 mins. Hence, we will connect the application using Application Gateway (WAF- Prevention mode) 
 
     ![](images/sql-inj-appgateway-waf-prev.png)    
     
@@ -167,7 +168,7 @@ Once Auditing & Threat Detection is database is enabled for SQL database, Azure 
     ![](images/403-forbidden-access-denied.png)  
 
  
-* To detect the prevention of attack execute following query in Azure Log Analytics
+* To detect the prevention of attack, execute following query in Azure Log Analytics
 
 
     ```AzureDiagnostics | where Message  contains "injection" and action_s contains "blocked"```
@@ -183,7 +184,18 @@ Once Auditing & Threat Detection is database is enabled for SQL database, Azure 
 
 * Cloudneeti is available on the Azure marketplace. Try out the free test drive here https://aka.ms/Cloudneeti 
 
+<a name="teardown"></a>
+## Teardown Deployment 
 
+Run following command to clear all the resources deployed during the demo. Specify resource group name given during deployment
+ 
+ `Remove-AzureRmResourceGroup -Name <ResourceGroupName>  -Force `
+ 
+    
+Verification steps -
+1. Login to Azure Portal / Subscription
+2. Check if resource group name given during deployment is cleared.
+<p/>
 
 **References** 
 
