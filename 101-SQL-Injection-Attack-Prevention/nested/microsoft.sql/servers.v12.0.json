@@ -36,7 +36,7 @@
         "resources": [
           {
             "name": "AllowAllWindowsAzureIps",
-            "type": "firewallrules",
+            "type": "firewallRules",
             "location": "[parameters('location')]",
             "apiVersion": "2015-05-01-preview",
             "dependsOn": [
